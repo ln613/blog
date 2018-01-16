@@ -39,7 +39,7 @@ extlinks:
 
 title: Lambda Nest
 baseurl: ""
-url: "https://github.com/ln613"
+url: "https://ln613.github.io/blog"
 permalink: /:year/:month/:day/:title
 repository: ln613/blog
 paginate: 5
