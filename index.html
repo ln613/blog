@@ -1,0 +1,66 @@
+---
+layout: default
+title: Home
+---
+
+	{% if paginator.previous_page %}
+		<h1 class='content-subhead'>Page {{paginator.page}}</h1>
+	{% endif %}
+
+	{% for post in paginator.posts %}
+	<article class='post'>
+		<h1 class='post-title'>
+			<a href="{{ post.url }}">{{ post.title }}</a>
+		</h1>
+
+		<div class='post-description'>
+			{{ post.excerpt }}
+		</div>
+
+    <a class="btn" href='{{ post.url }}'>Read more</a>
+	</article>
+
+	<hr>
+
+	{% endfor %}
+
+<p style='text-align:center; margin-top: 30px;'>
+	{% if paginator.previous_page %}
+		{% if paginator.previous_page == 1 %}
+			<a href='/'>Previous page</a>
+		{% else %}
+			<a href='/page{{paginator.previous_page}}/'>Previous page</a>
+		{% endif %}
+	{% endif %}
+
+	{% if paginator.next_page and paginator.previous_page %}
+		|
+	{% endif %}
+
+	{% if paginator.next_page %}
+		<a href='/page{{paginator.next_page}}/'>Next page</a>
+	{% endif %}
+</p>
+
+<!-- *********** Structured data for Google *********** -->
+<script type="application/ld+json">
+[
+	{
+		"@context": "http://schema.org",
+		"@type": "WebSite",
+		"name": "ln613",
+		"url": "https://ln613.github.io/blog/"
+	},
+	{
+		"@context": "http://schema.org",
+		"@type": "Organization",
+		"url": "https://ln613.github.io/blog",
+		"logo": "https://ln613.github.io/blog/assets/logo.png",
+		"sameAs": [
+			"https://www.facebook.com/ln613",
+			"https://github.com/ln613",
+			"https://twitter.com/ln_613"
+		]
+	}
+]
+</script>

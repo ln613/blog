@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+    <title>{{page.title}} | Nan Li</title>
+
+    <link rel='alternate' type='application/rss+xml' title='ln613 Feed' href='https://ln613.github.io/blog/atom.xml'>
+    <meta name='description' content='{{ page.quote }}'/>
+    <meta name='keywords' content='{{ page.keywords }}'/>
+    <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
+    <link rel='shortcut icon' href='/assets/favicon.ico' type='image/x-icon'>
+    <link rel='icon' href='/assets/favicon.ico' type='image/x-icon'>
+
+    {% css bundle %}
+
+    {% if page.thumbnail %}
+    <!-- Twitter tags -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@ln_613">
+    <meta name="twitter:creator" content="@ln_613">
+    <meta name="twitter:title" content="{{page.title}}">
+    <meta name="twitter:description" content="{{ page.excerpt | strip_html }}">
+    <meta name="twitter:image:src" content="https://ln613.github.io/blog{{page.upload_directory}}/thumb_twitter.jpg">
+
+    <!-- Facebook tags -->
+    <meta property="og:title" content="{{page.title}}"/>
+    <meta property="og:site_name" content="ln613"/>
+    <meta property="og:url" content="https://ln613.github.io/blog{{page.url}}"/>
+    <meta property="og:description" content="{{ page.excerpt | strip_html }}"/>
+    <meta property="og:image" content="https://ln613.github.io/blog{{page.upload_directory}}/thumb_facebook.jpg"/>
+    {% endif %}
+
+    <script src="https://use.fontawesome.com/c48c724053.js"></script>
+  </head>
+
+<body>
+
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="avatar">
+            <a href='https://github.com/ln613'>
+                <img class="circle" alt="" src="/assets/logo.png" height="100">
+            </a>
+        </div>
+
+            <h1 class="site-title">
+                <a href="https://github.com/ln613" title="Nan Li" rel="home">Nan Li</a>
+            </h1>
+
+        <nav role="navigation">
+            <div class="menu-main-nav-container">
+                <ul id="menu-main-nav" class="menu">
+                    <li><a href="/"><i class="fa fa-home"></i> Home</a></li>
+                    <li><a href="/tags.html"><i class="fa fa-tags"></i> Tags</a></li>
+                    <li><a href="/projects.html"><i class="fa fa-code"></i> Projects</a></li>
+                    <li><a href="https://github.com/ln613"><i class="fa fa-github"></i> Github</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="clear"></div>
+    </div><!--/container -->
+</header>
+
+<div class='container'>
+    {{ content | extlinks }}
+</div>
+
+<footer>
+    <p>Copyright 2018, Nan Li</p>
+
+    <p>
+        <a href="/atom.xml">RSS feed</a> - <a href="https://github.com/ln613" target='_blank'>Github</a> - <a
+            href="https://twitter.com/ln_613/" target='_blank'>Twitter</a> - <a href="https://www.facebook.com/ln613" target="_blank">Facebook</a>
+    </p>
+</footer>
+
+<link href='https://fonts.googleapis.com/css?family=Lato:700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Merriweather:300,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Crimson Text' rel='stylesheet' type='text/css'>
+
+{% include google-analytics.html %}
+
+<script type="text/javascript">
+(function () {
+    try{
+        var links = document.querySelectorAll('a.external');
+
+        for (var i = 0; i < links.length; ++i) {
+            links[i].onclick = function() {
+                ga('send', 'event', 'outbound', 'click', this.href);
+            };
+        }
+
+        window.addEventListener('error', function(e) {
+            ga('send', 'exception', {
+                'exDescription': e.message,
+                'exFatal': false
+            });
+        });
+    }catch(e){
+        ga('send', 'exception', {
+            'exDescription': err.message,
+            'exFatal': false
+        });
+    }
+})();
+</script>
+
+</body>
+</html>

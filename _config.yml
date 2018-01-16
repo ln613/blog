@@ -1,0 +1,53 @@
+markdown: kramdown
+markdown_ext: markdown,mkd,mkdn,md
+highlighter: rouge
+permalink: /:year/:month/:title/
+safe: false
+exclude: ['README.md', 'tmp/', 'Gemfile', 'Gemfile.lock']
+paginate: 5
+
+plugins:
+  - jekyll-paginate
+  - jekyll-assets
+  - jekyll-extlinks
+  - jekyll-github-metadata
+
+asset_bundler:
+  compress:
+    js: yui
+    css: yui
+  base_path: /bundles/
+  dev: false
+
+excerpt_separator: <!--more-->
+
+assets:
+  compress:
+    css: true
+    js: true
+  cache: _asset-cache
+  prefix: "/assets"
+  assets:
+    - "bundle.css"
+  digest: true
+  sources:
+    - "_assets/css"
+
+extlinks:
+  attributes: {target: _blank, class: 'external'}
+  rel_exclude: ['https://ln613.github.io/blog']
+
+title: Lambda Nest
+baseurl: ""
+url: "https://github.com/ln613"
+permalink: /:year/:month/:day/:title
+repository: ln613/blog
+paginate: 5
+
+github_profile: "https://github.com/ln613"
+user: "Nan Li"
+user_email: "ln613@hotmail.com"
+contact_url: "https://github.com/ln613"
+google_tracking_id: "UA-110959760-1"
+google_site_verification: "UA-110959760-1"
+disqus_shortname: "ln613"

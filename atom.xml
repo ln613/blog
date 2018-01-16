@@ -1,0 +1,32 @@
+---
+layout: null
+---
+<?xml version='1.0'?>
+<feed xmlns='http://www.w3.org/2005/Atom'>
+	<title>Nan Li's Lambda Nest</title>
+	<link href='https://ln613.github.io/blog/'/>
+	<link type='application/atom+xml' rel='self' href='https://ln613.github.io/blog/atom.xml'/>
+	<updated>{{ site.time | date_to_xmlschema }}</updated>
+	<id>https://ln613.github.io/blog/</id>
+
+	<author>
+		<name>Nan Li</name>
+		<email>ln613@hotmail.com</email>
+	</author>
+
+	{% for post in site.posts limit:40 %}
+	<entry>
+		<title>{{ post.title | xml_escape }}</title>
+		<link type='text/html' href='https://ln613.github.io/blog{{ post.url }}'/>
+		<id>https://ln613.github.io/blog{{ post.url }}</id>
+		<updated>{{ post.date | date_to_xmlschema }}</updated>
+
+		<author>
+			<name>Nan Li</name>
+			<uri>https://ln613.github.io/blog/</uri>
+		</author>
+
+		<content type='html'>{{ post.excerpt | xml_escape }}</content>
+	</entry>
+  {% endfor %}
+</feed>

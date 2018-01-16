@@ -1,0 +1,29 @@
+---
+layout: page
+permalink: tags.html
+title: Tags
+---
+
+<br/ >
+
+<div>
+  {% for tag in site.tags %}
+  <a class="btn" href="#{{tag[0] | slugify}}">{{tag[0]}}</a>
+  {% endfor %}
+</div>
+
+<div>
+  {% for tag in site.tags %}
+  <h4 id="{{tag[0] | slugify}}">{{tag[0]}}</h4>
+  <ul>
+    {% for post in tag[1] %}
+    <a href="{{site.baseurl}}{{post.url}}" target="_blank">
+      <li>
+        {{post.title}} - 
+        <small>{{post.date | date_to_string}}</small>
+      </li>
+    </a>
+    {% endfor %}
+  </ul>
+  {% endfor %}
+</div>

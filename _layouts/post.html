@@ -1,0 +1,29 @@
+---
+layout: default
+---
+
+
+<article class='post'>
+    <h1 class='post-title'>
+        {{ page.title }}
+    </h1>
+
+    <time class='date' datetime='{{ page.date | date: "%Y-%m-%dT00:00:00+01:00" }}'>{{ page.date | date_to_string }}</time>
+
+    <div>
+    {% for tag in page.tags %}
+    <span class="post-tag">{{ tag }}</span>
+    {% endfor %}
+    </div>
+    
+    <div class='post-description'>
+        {{ content }}
+    </div>
+</article>
+
+{% include share-buttons.html %}
+
+<br />
+<br />
+
+{% include disqus-comments.html %}
