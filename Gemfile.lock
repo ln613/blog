@@ -108,7 +108,7 @@ PLATFORMS
 DEPENDENCIES
   html-proofer
   jekyll
-  jekyll-assets
+  jekyll-assets (~> 2.3.2)
   jekyll-extlinks
   jekyll-github-metadata
   jekyll-paginate
