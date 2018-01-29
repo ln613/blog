@@ -44,6 +44,7 @@ permalink: /:year/:month/:day/:title
 repository: ln613/blog
 paginate: 5
 
+github: [metadata]
 github_profile: "https://github.com/ln613"
 user: "Nan Li"
 user_email: "ln613@hotmail.com"
