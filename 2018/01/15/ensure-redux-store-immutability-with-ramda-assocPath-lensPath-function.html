@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+
+    <title>Ensure redux store immutability with ramda's assocPath/lensPath function | Nan Li</title>
+
+    <link rel='alternate' type='application/rss+xml' title='ln613 Feed' href='https://ln613.github.io/blog/atom.xml'>
+    <meta name='description' content=''/>
+    <meta name='keywords' content=''/>
+    <meta name='viewport' content='width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no'>
+    <link rel='shortcut icon' href='/blog/assets/favicon.ico' type='image/x-icon'>
+    <link rel='icon' href='/blog/assets/favicon.ico' type='image/x-icon'>
+
+    <link type="text/css" rel="stylesheet" href="/blog/assets/bundle-add8d7ac1d2482cf340f368ab801692043f89dc93efd776c3318687813d4a8e7.css">
+    
+    
+
+    <script src="https://use.fontawesome.com/c48c724053.js"></script>
+  </head>
+
+<body>
+
+<header class="site-header" role="banner">
+    <div class="container">
+        <div class="avatar">
+            <a href="/blog/">
+                <img class="circle" alt="" src="/blog/assets/logo.png" height="100">
+            </a>
+        </div>
+
+            <h1 class="site-title">
+                <a href="/blog/" title="Nan Li's Lambda Nest" rel="home">Nan Li's Lambda Nest</a>
+            </h1>
+
+        <nav role="navigation">
+            <div class="menu-main-nav-container">
+                <ul id="menu-main-nav" class="menu">
+                    <li><a href="/blog/"><i class="fa fa-home"></i> Home</a></li>
+                    <li><a href="/blog/tags.html"><i class="fa fa-tags"></i> Tags</a></li>
+                    <li><a href="/blog/projects.html"><i class="fa fa-code"></i> Projects</a></li>
+                    <li><a href="https://github.com/ln613"><i class="fa fa-github"></i> Github</a></li>
+                </ul>
+            </div>
+        </nav>
+
+        <div class="clear"></div>
+    </div><!--/container -->
+</header>
+
+<div class='container'>
+    <article class="post">
+    <h1 class="post-title">
+        Ensure redux store immutability with ramda's assocPath/lensPath function
+    </h1>
+
+    <time class="date" datetime="2018-01-15T00:00:00+01:00">15 Jan 2018</time>
+
+    <div>
+    
+    <span class="post-tag">redux</span>
+    
+    <span class="post-tag">immutable</span>
+    
+    <span class="post-tag">ramda</span>
+    
+    </div>
+    
+    <div class="post-description">
+        <script src="/blog/assets/js/svg.js"></script>
+
+<script type="text/javascript">
+  window.onload = function () {
+    tree([2,2,1,1,2,,1,1,,2,1,,,,,,,,,1,1]);
+  }
+</script>
+
+<p>When working with react local state or redux store, you have to keep the old state immutable and generate new state.</p>
+
+<p>If you change the old state directly, your UI components will not be notified of the changes, thus the UI will not change.</p>
+
+<!--more-->
+
+<p>In this post, we are going to talk about ensuring immutability with Ramda’s assocPath function, which is very useful when you have a deeply nested state (Although should be avoided in the first place).</p>
+
+<p>It is hard to modify a deeply nested node in a state object with plain javascript if we want to keep the old object immutable. The reason is you have to create new copies for every node along the path from the root of the state object to the target node (all green nodes in the tree below).</p>
+
+<div id="tree"></div>
+
+<p>This is called <em>structural sharing</em>.</p>
+
+<p>For example, if we have the following state object:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">state</span> <span class="o">=</span> <span class="p">{</span>
+  <span class="na">artists</span><span class="p">:</span> <span class="p">[</span>
+    <span class="p">{</span>
+      <span class="na">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span>
+      <span class="na">name</span><span class="p">:</span> <span class="s1">'Michael Jackson'</span><span class="p">,</span>
+      <span class="na">albums</span><span class="p">:</span> <span class="p">[</span>
+        <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="p">...</span> <span class="p">},</span>
+        <span class="p">{</span>
+          <span class="na">id</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span>
+          <span class="na">name</span><span class="p">:</span> <span class="s1">'Thriller'</span><span class="p">,</span>
+          <span class="na">songs</span><span class="p">:</span> <span class="p">[</span>
+            <span class="p">...,</span>
+            <span class="p">{</span> <span class="na">id</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="na">title</span><span class="p">:</span> <span class="s1">'Beat It'</span> <span class="p">},</span>
+            <span class="p">...</span>
+          <span class="p">]</span>
+        <span class="p">},</span>
+      <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="p">...</span>
+  <span class="p">],</span>
+  <span class="p">...</span>
+<span class="p">};</span>
+</code></pre></div></div>
+
+<p>If we want to change the title of the song ‘Beat It’, in order to keep the state object immutable, we have to do the following:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">song</span> <span class="o">=</span> <span class="p">{...</span><span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">albums</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">songs</span><span class="p">[</span><span class="mi">4</span><span class="p">],</span> <span class="na">title</span><span class="p">:</span> <span class="s1">'BEAT IT'</span><span class="p">};</span>
+
+<span class="kd">const</span> <span class="nx">songs</span> <span class="o">=</span> <span class="p">[...</span><span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">albums</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">songs</span><span class="p">];</span>
+<span class="nx">songs</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="o">=</span> <span class="nx">song</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">album</span> <span class="o">=</span> <span class="p">{...</span><span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">albums</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nx">songs</span><span class="p">};</span>
+
+<span class="kd">const</span> <span class="nx">albums</span> <span class="o">=</span> <span class="p">[...</span><span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">albums</span><span class="p">];</span>
+<span class="nx">albums</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="nx">album</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">artist</span> <span class="o">=</span> <span class="p">{...</span><span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nx">albums</span><span class="p">};</span>
+
+<span class="kd">const</span> <span class="nx">artists</span> <span class="o">=</span> <span class="p">[...</span><span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">];</span>
+<span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="nx">artist</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">newState</span> <span class="o">=</span> <span class="p">{...</span><span class="nx">state</span><span class="p">,</span> <span class="nx">artists</span><span class="p">};</span>
+</code></pre></div></div>
+
+<p>That’s a lot of work everytime you want to change something deep, and very error-prone. It needs to be abstracted away from your application code which should only contain business logic and not implementation logic.</p>
+
+<p>Ramda’s <a href="http://ramdajs.com/docs/#assocPath" target="_blank" class="external">assocPath</a> function is perfect for this task.</p>
+
+<h2 id="ramda">Ramda</h2>
+
+<p>Similar to lodash and underscore, <a href="http://ramdajs.com/" target="_blank" class="external">Ramda</a> is a javascript library which provides functions that work with javascript objects, arrays and strings. The difference is that Ramda is designed specifically for functional programming style, which means:</p>
+
+<ul>
+  <li>Ramda functions never mutate data, they are pure and always return new copies of data</li>
+  <li>Ramda functions support currying, and the target parameter is always at the end, which makes it much easier to do function composition</li>
+</ul>
+
+<p>For more information on Ramda, check the following:</p>
+
+<p><a href="http://randycoulman.com/blog/categories/thinking-in-ramda/" target="_blank" class="external">Thinking in Ramda</a></p>
+
+<p><a href="https://www.youtube.com/watch?v=m3svKOdZijA&amp;app=desktop" target="_blank" class="external">Hey Underscore, You’re Doing It Wrong!</a></p>
+
+<p><a href="https://github.com/ramda/ramda/wiki/What-Function-Should-I-Use%3F" target="_blank" class="external">What Function Should I Use?</a></p>
+
+<h2 id="assocpath">assocPath</h2>
+
+<p>Ramda provides a function called <a href="http://ramdajs.com/docs/#assocPath" target="_blank" class="external">assocPath</a>, which will create a shallow clone of an object, then modify a given node based on a given path. The path is an array containing the name or the array index of each node along the path. So instead of creating new copies of the nodes along the path ourselves, we can provide an array representing the path, and let assocPath function create new copies of those nodes for us.</p>
+
+<p>With assocPath, the previous updating logic can be simplified to:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">assocPath</span> <span class="p">}</span> <span class="k">from</span> <span class="s1">'ramda'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">newState</span> <span class="o">=</span> <span class="nx">assocPath</span><span class="p">(</span>
+  <span class="p">[</span><span class="s1">'artists'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'albums'</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'songs'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'title'</span><span class="p">],</span>
+  <span class="s1">'BEAT IT'</span><span class="p">,</span>
+  <span class="nx">state</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>That’s much easier to understand and less error-prone. Immutability is also guaranteed.</p>
+
+<h2 id="lenspath">lensPath</h2>
+
+<p>If the new value is calculated based on the old value, you have to specify the path twice:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kd">const</span> <span class="nx">newState</span> <span class="o">=</span> <span class="nx">assocPath</span><span class="p">(</span>
+  <span class="p">[</span><span class="s1">'artists'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'albums'</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'songs'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'title'</span><span class="p">],</span>
+  <span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="mi">0</span><span class="p">].</span><span class="nx">albums</span><span class="p">[</span><span class="mi">1</span><span class="p">].</span><span class="nx">songs</span><span class="p">[</span><span class="mi">4</span><span class="p">].</span><span class="nx">title</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">(),</span>
+  <span class="nx">state</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>To avoid this, you can use another Ramda function called <a href="http://ramdajs.com/docs/#lensPath" target="_blank" class="external">lensPath</a>. It builds a lens object based on the path, then you can <a href="http://ramdajs.com/docs/#view" target="_blank" class="external">view</a> (read the value), <a href="http://ramdajs.com/docs/#set" target="_blank" class="external">set</a> (set the value) or <a href="http://ramdajs.com/docs/#over" target="_blank" class="external">over</a> (calculate new value based on the old value) the lens object.</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">lensPath</span><span class="p">,</span> <span class="nx">over</span> <span class="p">}</span> <span class="k">from</span> <span class="s1">'ramda'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">newState</span> <span class="o">=</span> <span class="nx">over</span><span class="p">(</span>
+  <span class="nx">lensPath</span><span class="p">([</span><span class="s1">'artists'</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">'albums'</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">'songs'</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="s1">'title'</span><span class="p">]),</span>
+  <span class="nx">t</span> <span class="o">=&gt;</span> <span class="nx">t</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">(),</span>
+  <span class="nx">state</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>The lens functions are actually implemented using assocPath function in Ramda.</p>
+
+<h2 id="find-array-item-in-the-path">Find array item in the path</h2>
+
+<p>With Ramda’s assocPath or the lensPath function, it’s much easier to update a deeply nested object while keeping immutability. However, you can only specify an array index to locate an array item, which means you still have to find the index of an array item yourself:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">lensPath</span><span class="p">,</span> <span class="nx">over</span> <span class="p">}</span> <span class="k">from</span> <span class="s1">'ramda'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">artistIndex</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">.</span><span class="nx">findIndex</span><span class="p">(</span><span class="nx">x</span> <span class="o">=&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">id</span> <span class="o">===</span> <span class="mi">1</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">albumIndex</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="nx">artistIndex</span><span class="p">].</span><span class="nx">albums</span><span class="p">.</span><span class="nx">findIndex</span><span class="p">(</span><span class="nx">x</span> <span class="o">=&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">name</span> <span class="o">===</span> <span class="s1">'Thriller'</span><span class="p">);</span>
+<span class="kd">const</span> <span class="nx">songIndex</span> <span class="o">=</span> <span class="nx">state</span><span class="p">.</span><span class="nx">artists</span><span class="p">[</span><span class="nx">artistIndex</span><span class="p">].</span><span class="nx">albums</span><span class="p">[</span><span class="nx">albumIndex</span><span class="p">].</span><span class="nx">songs</span><span class="p">.</span><span class="nx">findIndex</span><span class="p">(</span><span class="nx">x</span> <span class="o">=&gt;</span> <span class="nx">x</span><span class="p">.</span><span class="nx">id</span> <span class="o">===</span> <span class="mi">5</span><span class="p">);</span>
+
+<span class="kd">const</span> <span class="nx">newState</span> <span class="o">=</span> <span class="nx">over</span><span class="p">(</span>
+  <span class="nx">lensPath</span><span class="p">([</span><span class="s1">'artists'</span><span class="p">,</span> <span class="nx">artistIndex</span><span class="p">,</span> <span class="s1">'albums'</span><span class="p">,</span> <span class="nx">albumIndex</span><span class="p">,</span> <span class="s1">'songs'</span><span class="p">,</span> <span class="nx">songIndex</span><span class="p">,</span> <span class="s1">'title'</span><span class="p">]),</span>
+  <span class="nx">t</span> <span class="o">=&gt;</span> <span class="nx">t</span><span class="p">.</span><span class="nx">toUpperCase</span><span class="p">(),</span>
+  <span class="nx">state</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>Which makes the code complecated again.</p>
+
+<p>To solve this problem, I created a library <a href="https://github.com/ln613/ipath" target="_blank" class="external">ipath</a>, which allows you to specify a condition in a string path to find an array element:</p>
+
+<div class="language-js highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">import</span> <span class="p">{</span> <span class="nx">update</span> <span class="p">}</span> <span class="k">from</span> <span class="s1">'ipath'</span><span class="p">;</span>
+
+<span class="kd">const</span> <span class="nx">newState</span> <span class="o">=</span> <span class="nx">update</span><span class="p">(</span>
+  <span class="nx">state</span><span class="p">,</span>
+  <span class="s1">'artists[id=1].albums[name=Thriller].songs[4].title'</span><span class="p">,</span>
+  <span class="s1">'BEAT IT'</span>
+<span class="p">);</span>
+</code></pre></div></div>
+
+<p>It’s implemented based on Ramda’s assocPath/lensPath function, so immutability is guaranteed.</p>
+
+
+    </div>
+</article>
+
+<div class="share-button-container">
+
+  <div class="socialbutton-wrapper">
+    <div><b>Share:</b></div> 
+    <a href="https://twitter.com/intent/tweet?text=https://ln613.github.io/blog%2F2018%2F01%2F15%2Fensure-redux-store-immutability-with-ramda-assocPath-lensPath-function" target="_blank" class="external">
+      <i class="share-twitter fa fa-twitter"></i>
+    </a>
+
+    <a href="https://www.facebook.com/sharer/sharer.php?u=https://ln613.github.io/blog%2F2018%2F01%2F15%2Fensure-redux-store-immutability-with-ramda-assocPath-lensPath-function" target="_blank" class="external">
+      <i class="share-fb fa fa-facebook"></i>
+    </a>
+
+    <a href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https://ln613.github.io/blog%2F2018%2F01%2F15%2Fensure-redux-store-immutability-with-ramda-assocPath-lensPath-function&amp;title=Ensure+redux+store+immutability+with+ramda%27s+assocPath%2FlensPath+function" target="_blank" class="external">
+      <i class="share-linkedin fa fa-linkedin"></i>
+    </a>
+
+    <a href="https://plus.google.com/share?url=https://ln613.github.io/blog%2F2018%2F01%2F15%2Fensure-redux-store-immutability-with-ramda-assocPath-lensPath-function" target="_blank" class="external">
+      <i class="share-gplus fa fa-google-plus"></i>
+    </a>
+
+    <a href="https://news.ycombinator.com/submitlink?u=https://ln613.github.io/blog%2F2018%2F01%2F15%2Fensure-redux-store-immutability-with-ramda-assocPath-lensPath-function" target="_blank" class="external">
+      <i class="share-hackernews fa fa-hacker-news"></i>
+    </a>
+
+    <a href="http://www.reddit.com/submit?url=https://ln613.github.io/blog%2F2018%2F01%2F15%2Fensure-redux-store-immutability-with-ramda-assocPath-lensPath-function&amp;title=Ensure+redux+store+immutability+with+ramda%27s+assocPath%2FlensPath+function" target="_blank" class="external">
+      <i class="share-reddit fa fa-reddit"></i>
+    </a>
+
+    <a href="mailto:ln613@hotmail.com">
+      <i class="share-email fa fa-envelope"></i>
+    </a>
+  </div>
+</div>
+
+
+<br>
+<br>
+
+<div id="comments">
+    <div id="disqus_thread"></div>
+    <script type="text/javascript">
+        var disqus_shortname = 'ln613';
+        (function () {
+            var dsq = document.createElement('script');
+            dsq.type = 'text/javascript';
+            dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
+    <noscript>Please enable JavaScript to view the comments</noscript>
+</div>
+</div>
+
+<footer>
+    <p>Copyright 2018, Nan Li</p>
+
+    <p>
+        <a href="/blog/atom.xml">RSS feed</a> - <a href="https://github.com/ln613" target='_blank'>Github</a> - <a
+            href="https://twitter.com/ln_613/" target='_blank'>Twitter</a> - <a href="https://www.facebook.com/ln613" target="_blank">Facebook</a>
+    </p>
+</footer>
+
+<link href='https://fonts.googleapis.com/css?family=Lato:700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Merriweather:300,700&subset=latin,latin-ext' rel='stylesheet' type='text/css'>
+<link href='https://fonts.googleapis.com/css?family=Crimson Text' rel='stylesheet' type='text/css'>
+
+<script type='text/javascript'>
+// Google Analytics
+(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+ga('create', 'UA-110959760-1', 'https://ln613.github.io/blog');
+ga('send', 'pageview');
+</script>
+
+<script type="text/javascript">
+(function () {
+    try{
+        var links = document.querySelectorAll('a.external');
+
+        for (var i = 0; i < links.length; ++i) {
+            links[i].onclick = function() {
+                ga('send', 'event', 'outbound', 'click', this.href);
+            };
+        }
+
+        window.addEventListener('error', function(e) {
+            ga('send', 'exception', {
+                'exDescription': e.message,
+                'exFatal': false
+            });
+        });
+    }catch(e){
+        ga('send', 'exception', {
+            'exDescription': err.message,
+            'exFatal': false
+        });
+    }
+})();
+</script>
+
+</body>
+</html>
