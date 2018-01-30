@@ -6,7 +6,7 @@ categories: Default
 tags: redux immutable ramda
 comments: 1
 ---
-<script src="/assets/js/svg.js"></script>
+<script src="{{ site.baseurl }}/assets/js/svg.js"></script>
 <script type="text/javascript">
   window.onload = function () {
     tree([2,2,1,1,2,,1,1,,2,1,,,,,,,,,1,1]);

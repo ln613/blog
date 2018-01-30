@@ -38,7 +38,7 @@ extlinks:
   rel_exclude: ['https://ln613.github.io/blog']
 
 title: Lambda Nest
-baseurl: ""
+baseurl: "/blog"
 url: "https://ln613.github.io/blog"
 permalink: /:year/:month/:day/:title
 repository: ln613/blog
